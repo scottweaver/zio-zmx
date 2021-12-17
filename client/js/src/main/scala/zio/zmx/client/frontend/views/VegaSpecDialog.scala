@@ -69,9 +69,11 @@ object VegaSpecDialog {
               href := "#",
               cls := "btn btn-primary",
               onClick.mapToEvent --> { _ =>
-                val newSpec = Try(js.JSON.parse(curSpec.now())).toOption
+                val newSpec = Try(js.JSON.parse(curSpec.now())).toOption.map { obj =>
+                  obj.selectDynamic("data").updateDynamic("values")(js.Array[js.Dynamic]())
+                  obj
+                }
                 newSpec.foreach { s =>
-                  println("Updating Vega Spec in config")
                   val newCfg = cfg.copy(vegaConfig = Some(s))
                   Command.observer.onNext(Command.UpdateDashboard(newCfg))
                 }

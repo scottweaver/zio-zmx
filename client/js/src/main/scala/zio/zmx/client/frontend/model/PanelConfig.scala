@@ -32,7 +32,7 @@ object PanelConfig {
   }
 
   /**
-   * A diagram config is used to configure a panel showing the chart of zero or more metrics.
+   * A display config is used to configure a panel showing the chart of zero or more metrics.
    */
   final case class DisplayConfig(
     // Unique ID

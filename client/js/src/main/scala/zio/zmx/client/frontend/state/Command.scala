@@ -8,7 +8,6 @@ import zio.metrics.MetricKey
 import zio.zmx.client.frontend.components._
 import zio.zmx.client.frontend.model.PanelConfig
 import zio.zmx.client.frontend.model.Layout._
-import zio.zmx.client.frontend.model.Layout.Dashboard._
 import zio.zmx.client.frontend.model.TimeSeriesKey
 import zio.zmx.client.frontend.model.TimeSeriesConfig
 import zio.zmx.client.frontend.model.TimeSeriesEntry
@@ -88,7 +87,7 @@ object Command {
 
     case ClosePanel(cfg) =>
       AppState.dashBoard.update(db =>
-        db.transform {
+        db.transform[PanelConfig] {
           case Dashboard.Cell(p) if p.id == cfg.id =>
             sendCommand(ClientMessage.RemoveSubscription(_, cfg.id))
             Dashboard.Empty
@@ -102,7 +101,7 @@ object Command {
 
     case SplitHorizontal(cfg) =>
       AppState.dashBoard.update(db =>
-        db.transform {
+        db.transform[PanelConfig] {
           case c @ Dashboard.Cell(p) if p.id == cfg.id =>
             Dashboard.VGroup(
               Chunk(c, Dashboard.Cell(PanelConfig.EmptyConfig.create(s"New Panel - ${panelCount.incrementAndGet()}")))
@@ -112,7 +111,7 @@ object Command {
 
     case SplitVertical(cfg) =>
       AppState.dashBoard.update(db =>
-        db.transform {
+        db.transform[PanelConfig] {
           case c @ Dashboard.Cell(p) if p.id == cfg.id =>
             Dashboard.HGroup(
               Chunk(c, Dashboard.Cell(PanelConfig.EmptyConfig.create(s"New Panel - ${panelCount.incrementAndGet()}")))
@@ -122,7 +121,7 @@ object Command {
 
     case UpdateDashboard(cfg) =>
       AppState.dashBoard.update(db =>
-        db.transform {
+        db.transform[PanelConfig] {
           case Dashboard.Cell(p) if p.id == cfg.id =>
             Dashboard.Cell(cfg)
         }

@@ -104,20 +104,19 @@ final case class VegaModel(
       )
     )
 
-  val vegaDef: js.Dynamic = {
-    val entries = data.data.values.flatten
-
-    val vegaData = entries.map(toData).toJSArray
-
-    val rawVega = cfg.vegaConfig match {
-      case None    =>
-        createVega(cfg, entries)
-      case Some(v) =>
-        v
-    }
-
-    replaceData(rawVega, vegaData)
+  lazy val currentVega = cfg.vegaConfig match {
+    case None    =>
+      createVega(cfg, data.data.values.flatten)
+    case Some(v) =>
+      v
   }
 
-  val vegaDefJson = js.JSON.stringify(vegaDef, (s: String, v: js.Any) => v, 2)
+  lazy val vegaDef: js.Dynamic = {
+    val vegaData = data.data.values.flatten.map(toData).toJSArray
+    replaceData(currentVega, vegaData)
+  }
+
+  lazy val vegaDefNoData: js.Dynamic = replaceData(currentVega, js.Array[js.Dynamic]())
+
+  lazy val vegaDefJson = js.JSON.stringify(vegaDef, (s: String, v: js.Any) => v, 2)
 }

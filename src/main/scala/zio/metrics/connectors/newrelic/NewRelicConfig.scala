@@ -12,24 +12,30 @@ final case class NewRelicConfig(
 
 object NewRelicConfig {
 
+  // TODO: Use timecode to try and figure out the NR endpoint
   /**
    * Attempts to load the Settings from the environment.
    *
    * ===Environment Variables===
    *
-   *  - '''`NEW_RELIC_API_KEY`''': Your New Relic API Key.  '''Required'''.
-   *  - '''`NEW_RELIC_URI`''':     The New Relic Metric API URI.  '''Optional'''.  Defaults to `https://metric-api.newrelic.com/metric/v1`.
+   * | Name                                | Type          | Required                                                                                | Description                                            |
+   * | ----------------------------------- | ------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+   * | `NEW_RELIC_API_KEY`                 | string        | Yes                                                                                     | Your New Relic license key.                            |
+   * | `NEW_RELIC_URI`                     | string        | No. Defaults to `https://metric-api.newrelic.com/metric/v1`.                            | The New Relic API endpoint appropriate for you region. |
+   * | `NEW_RELIC_MAX_METRICS_PER_REQUEST` | integer       | No.  Defaults to 1000 (this the max number of metrics per request allowed by New Relic) | Maximum number of metrics to send in a single request. |
+   * | `NEW_RELIC_MAX_PUBLISHING_DELAY`    | Java Duration | No.  Defaults to `PT5S` (5 seconds)                                                     | How long to wait before sending a metric request.      |
    *
    * REF: [[https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/report-metrics-metric-api/#api-endpoint New Relic's Metric API Doc]]
    */
-  // TODO: Use timecode to try and figure out the NR endpoint
-  val fromEnvLayer: ZLayer[Any,Nothing,NewRelicConfig] = 
-    ZLayer.fromZIO(for {
-      apiKey               <- System.env(envApiKey).someOrFail(new IllegalArgumentException("APIKey is missing for New Relic"))
-      newRelicUri          <- System.env(envMetricsUri).map(_.map(NewRelicUri.Custom.apply)).map(_.getOrElse(NewRelicUri.NA))
-      maxMetricsPerRequest <- System.envOrElse(envMaxMetricsPerRequest, "1000").map(_.toInt)
-      maxPublishingDelay   <- System.envOrElse(envMaxPublishingDelay, "5.seconds").map(Duration.parse)
-    } yield (NewRelicConfig(apiKey, newRelicUri, maxMetricsPerRequest, maxPublishingDelay))).orDie
+  val fromEnvLayer: ZLayer[Any, Nothing, NewRelicConfig] =
+    ZLayer
+      .fromZIO(for {
+        apiKey               <- System.env(envApiKey).someOrFail(new IllegalArgumentException("APIKey is missing for New Relic"))
+        newRelicUri          <- System.env(envMetricsUri).map(_.map(NewRelicUri.Custom.apply)).map(_.getOrElse(NewRelicUri.NA))
+        maxMetricsPerRequest <- System.envOrElse(envMaxMetricsPerRequest, "1000").map(_.toInt)
+        maxPublishingDelay   <- System.envOrElse(envMaxPublishingDelay, "5.seconds").map(Duration.parse)
+      } yield (NewRelicConfig(apiKey, newRelicUri, maxMetricsPerRequest, maxPublishingDelay)))
+      .orDie
 
   val fromEnvEULayer = fromEnvLayer.project(_.copy(newRelicURI = NewRelicUri.EU))
 

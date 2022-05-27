@@ -101,9 +101,9 @@ final case class NewRelicEncoder(startedAt: Instant) {
   private[connectors] def encodeAttributes(labels: Set[MetricLabel], additionalAttributes: Set[(String, Json)]): Json =
     Json.Obj(
       "attributes" -> Json.Obj(Chunk.fromIterable(labels.map { case MetricLabel(name, value) =>
-        sanitzeLabelName(name) -> Json.Str(value)
+        sanitizeLabelName(name) -> Json.Str(value)
       } ++ additionalAttributes.map { case (name, value) =>
-        sanitzeLabelName(name) -> value
+        sanitizeLabelName(name) -> value
       })),
     )
 
@@ -265,6 +265,6 @@ final case class NewRelicEncoder(startedAt: Instant) {
     "with",
   )
 
-  private[connectors] def sanitzeLabelName(name: String): String =
+  private[connectors] def sanitizeLabelName(name: String): String =
     if (!name.startsWith("zmx") && reservedWords.contains(name.toLowerCase())) s"`$name`" else name
 }
